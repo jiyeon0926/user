@@ -10,12 +10,14 @@ import user.dto.UserRequestDto;
 import user.entity.User;
 import user.repository.UserRepository;
 import user.util.PasswordEncoder;
+import user.util.SlackNotifier;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
+    private final SlackNotifier slackNotifier;
 
     @Transactional
     public void signup(UserRequestDto userRequestDto) {
@@ -31,6 +33,9 @@ public class UserService {
         if (user == null || !PasswordEncoder.matches(loginRequestDto.getPassword(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유효하지 않은 이메일 혹은 잘못된 비밀번호 입니다.");
         }
+
+        String message = user.getEmail() + " 사용자가 로그인을 했습니다!";
+        slackNotifier.sendNotification(message);
 
         return user;
     }
